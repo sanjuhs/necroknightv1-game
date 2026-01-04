@@ -28,7 +28,7 @@ function Menu.new()
         { text = "Start Game", action = "start" },
         { text = "Continue", action = "continue", disabled = true },
         { text = "Settings", action = "settings" },
-        { text = "Level Editor", action = "editor", disabled = true },
+        { text = "Level Editor", action = "editor" },
         { text = "Quit", action = "quit" }
     }
     
@@ -338,6 +338,8 @@ function Menu:handleMainMenuInput(key, game)
                 self.previousState = Menu.STATE.MAIN
                 self.state = Menu.STATE.SETTINGS
                 self.selectedIndex = 1
+            elseif option.action == "editor" then
+                return "open_editor"
             elseif option.action == "quit" then
                 love.event.quit()
             end

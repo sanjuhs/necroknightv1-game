@@ -1,15 +1,20 @@
 -- Animation class for sprite sheet animations
+-- Supports horizontal sprite strips (single row of frames)
 local Config = require("src.config")
 
 local Animation = {}
 Animation.__index = Animation
 
-function Animation.new(spriteSheet, frameWidth, frameHeight, row, numFrames, frameDuration)
+-- Create animation from a horizontal sprite strip (single row)
+-- spriteSheet: the loaded image
+-- frameWidth, frameHeight: dimensions of each frame
+-- numFrames: total number of frames in the strip
+-- frameDuration: time per frame (defaults to ANIMATION_FRAME_TIME)
+function Animation.new(spriteSheet, frameWidth, frameHeight, numFrames, frameDuration)
     local self = setmetatable({}, Animation)
     self.spriteSheet = spriteSheet
     self.frameWidth = frameWidth
     self.frameHeight = frameHeight
-    self.row = row
     self.numFrames = numFrames
     self.frameDuration = frameDuration or Config.ANIMATION_FRAME_TIME
     self.currentFrame = 1
@@ -18,7 +23,35 @@ function Animation.new(spriteSheet, frameWidth, frameHeight, row, numFrames, fra
     self.finished = false
     self.loop = true
     
-    -- Create quads for each frame
+    -- Create quads for each frame (horizontal strip, single row)
+    local sheetWidth = spriteSheet:getWidth()
+    local sheetHeight = spriteSheet:getHeight()
+    
+    for i = 1, numFrames do
+        local x = (i - 1) * frameWidth
+        local y = 0  -- Single row (horizontal strip)
+        self.quads[i] = love.graphics.newQuad(x, y, frameWidth, frameHeight, sheetWidth, sheetHeight)
+    end
+    
+    return self
+end
+
+-- Create animation from a sprite sheet with multiple rows
+-- row: 1-based row index
+function Animation.newFromRow(spriteSheet, frameWidth, frameHeight, row, numFrames, frameDuration)
+    local self = setmetatable({}, Animation)
+    self.spriteSheet = spriteSheet
+    self.frameWidth = frameWidth
+    self.frameHeight = frameHeight
+    self.numFrames = numFrames
+    self.frameDuration = frameDuration or Config.ANIMATION_FRAME_TIME
+    self.currentFrame = 1
+    self.timer = 0
+    self.quads = {}
+    self.finished = false
+    self.loop = true
+    
+    -- Create quads for each frame from specified row
     local sheetWidth = spriteSheet:getWidth()
     local sheetHeight = spriteSheet:getHeight()
     
@@ -62,10 +95,9 @@ function Animation:reset()
 end
 
 function Animation:clone()
-    local clone = Animation.new(self.spriteSheet, self.frameWidth, self.frameHeight, self.row, self.numFrames, self.frameDuration)
+    local clone = Animation.new(self.spriteSheet, self.frameWidth, self.frameHeight, self.numFrames, self.frameDuration)
     clone.loop = self.loop
     return clone
 end
 
 return Animation
-
